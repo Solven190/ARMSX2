@@ -54,10 +54,47 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material.icons.outlined.Album
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.HourglassEmpty
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.SdCard
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.SortByAlpha
+import androidx.compose.material.icons.outlined.SportsEsports
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.ViewInAr
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -88,6 +125,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.armsx2.CoverArtStyle
@@ -509,18 +547,6 @@ fun HomeScreen(
                         )
                     },
                     actions = {
-                        // Clock + battery, ahead of the buttons so it reads as status rather than
-                        // as another control. Deliberately NOT controllerFocusable — it isn't
-                        // interactive, and registering it would put a dead stop in the pad's path
-                        // through the toolbar.
-                        com.armsx2.ui.common.LibraryStatusCluster(
-                            // align(): the title block makes the bar taller than this two-line
-                            // cluster, so without it the pair sits high relative to the buttons.
-                            Modifier.align(Alignment.CenterVertically).padding(end = 6.dp),
-                            // Portrait: single compact row so the narrow bar doesn't cram it.
-                            compact = LocalConfiguration.current.orientation ==
-                                android.content.res.Configuration.ORIENTATION_PORTRAIT,
-                        )
                         RoundAction(
                             "↻",
                             str("games.card.refresh"),
@@ -654,15 +680,26 @@ fun HomeScreen(
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Outlined.Label,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
                             Text(
-                                "\uD83C\uDFF7\uFE0F  " + (state.categoryFilter ?: allLabel),
+                                state.categoryFilter ?: allLabel,
                                 Modifier.weight(1f),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Text("\u25BE", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         if (picking) {
                             com.armsx2.ui.common.PadModal(
@@ -709,7 +746,12 @@ fun HomeScreen(
                                                     overflow = TextOverflow.Ellipsis,
                                                 )
                                                 if (state.categoryFilter == name) {
-                                                    Text("\u2713", color = MaterialTheme.colorScheme.primary)
+                                                    androidx.compose.material3.Icon(
+                                                        imageVector = Icons.Outlined.Check,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
                                                 }
                                             }
                                         }
@@ -1081,7 +1123,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
-                GameMenuAction("▶", str("action.play"), "game-menu.play") {
+                GameMenuAction(icon = Icons.Outlined.PlayArrow, label = str("action.play"), id = "game-menu.play") {
                     menuGame = null
                     viewModel.launch(game)
                 }
@@ -1094,7 +1136,7 @@ fun HomeScreen(
                 }
                 if (hasSaves)
                 {
-                    GameMenuAction("💾", str("games.loadState"), "game-menu.loadstate") {
+                    GameMenuAction(icon = Icons.Outlined.Save, label = str("games.loadState"), id = "game-menu.loadstate") {
                         menuGame = null
                         // The same Save Manager the drawer opens, listing every game's saves,
                         // scrolled to this one. It reads the save folders and the library, so it
@@ -1104,13 +1146,13 @@ fun HomeScreen(
                         )
                     }
                 }
-                GameMenuAction("⚙", str("action.settings"), "game-menu.settings") {
+                GameMenuAction(icon = Icons.Outlined.Settings, label = str("action.settings"), id = "game-menu.settings") {
                     menuGame = null
                     onOpenGameSettings(game)
                 }
                 // Per-game BIOS: open the BIOS manager scoped to THIS game (no need to load it),
                 // since the BIOS manager isn't reachable from the in-game menu.
-                GameMenuAction("📀", str("bios.perGame.menu"), "game-menu.bios") {
+                GameMenuAction(icon = Icons.Outlined.Album, label = str("bios.perGame.menu"), id = "game-menu.bios") {
                     menuGame = null
                     com.armsx2.navigation.UiNavigator.navigate(com.armsx2.navigation.AppRoute.BiosManager(game))
                 }
@@ -1124,9 +1166,9 @@ fun HomeScreen(
                     com.armsx2.CoverRegionIndex.perGameGeneration.intValue
                     val pinned = com.armsx2.CoverRegionIndex.regionFor(gameSerial)
                     GameMenuAction(
-                        "A/あ",
-                        str("games.overflow.coverRegion"),
-                        "game-menu.coverregion",
+                        icon = Icons.Outlined.Language,
+                        label = str("games.overflow.coverRegion"),
+                        id = "game-menu.coverregion",
                         trailing = str(
                             when (pinned) {
                                 1 -> "games.overflow.coverRegion.usa"
@@ -1155,7 +1197,7 @@ fun HomeScreen(
                 // does per-game assignment whenever it is handed a game — until now the only
                 // caller that handed it one was the in-game menu, so from the library you got
                 // the global slots and no way to reach the per-game ones.
-                GameMenuAction("🗃️", str("memcard.perGame.menu"), "game-menu.memcard") {
+                GameMenuAction(icon = Icons.Outlined.SdCard, label = str("memcard.perGame.menu"), id = "game-menu.memcard") {
                     menuGame = null
                     com.armsx2.navigation.UiNavigator.navigate(
                         com.armsx2.navigation.AppRoute.MemoryCardManager(game))
@@ -1164,7 +1206,7 @@ fun HomeScreen(
                 // rebuilt, leaving HomeShortcuts with no call site at all (issue #335).
                 // pin() returns false only when the launcher can't pin — surface that.
                 val addToHomeFailed = str("games.addToHome.unsupported")
-                GameMenuAction("📌", str("games.addToHome"), "game-menu.pin") {
+                GameMenuAction(icon = Icons.Outlined.PushPin, label = str("games.addToHome"), id = "game-menu.pin") {
                     menuGame = null
                     // pin() fetches the cover first, normally from the library's image cache.
                     scope.launch {
@@ -1175,7 +1217,7 @@ fun HomeScreen(
                 // Only offered when the game is actually in Recently Played — this drops
                 // just this one entry, unlike the library-wide "Show Recently Played" toggle.
                 if (state.recentGames.any { it.uri == game.uri }) {
-                    GameMenuAction("🕐", str("games.removeRecent"), "game-menu.recent") {
+                    GameMenuAction(icon = Icons.Outlined.History, label = str("games.removeRecent"), id = "game-menu.recent") {
                         viewModel.removeFromRecent(game)
                         menuGame = null
                     }
@@ -1188,7 +1230,7 @@ fun HomeScreen(
                     !game.extension.equals("ELF", ignoreCase = true) &&
                     game.extension != com.armsx2.arcade.Arcade.BADGE
                 ) {
-                    GameMenuAction("⚡", str("games.quickLoad"), "game-menu.quickload") {
+                    GameMenuAction(icon = Icons.Outlined.Bolt, label = str("games.quickLoad"), id = "game-menu.quickload") {
                         menuGame = null
                         quickLoadConfirm = game
                     }
@@ -1199,28 +1241,28 @@ fun HomeScreen(
                 if (game.uri.toString().endsWith(".elf", ignoreCase = true) ||
                     game.extension.equals("ELF", ignoreCase = true)
                 ) {
-                    GameMenuAction("💿", str("games.elfDisc"), "game-menu.elfdisc") {
+                    GameMenuAction(icon = Icons.Outlined.Album, label = str("games.elfDisc"), id = "game-menu.elfdisc") {
                         menuGame = null
                         discForElf = game
                         elfDiscPicker.launch(arrayOf("*/*"))
                     }
                 }
                 if (com.armsx2.QuickLoadSetup.isInstalledElf(game)) {
-                    GameMenuAction("🧹", str("games.quickLoad.remove"), "game-menu.quickload.remove") {
+                    GameMenuAction(icon = Icons.Outlined.DeleteSweep, label = str("games.quickLoad.remove"), id = "game-menu.quickload.remove") {
                         menuGame = null
                         quickLoadRemove = game
                     }
                 }
-                GameMenuAction("🏷️", str("games.categories"), "game-menu.categories") {
+                GameMenuAction(icon = Icons.Outlined.Label, label = str("games.categories"), id = "game-menu.categories") {
                     menuGame = null
                     categoryGame = game
                 }
                 val hidden = com.armsx2.HiddenGames.isHidden(game)
-                GameMenuAction(if (hidden) "◍" else "🚫", str(if (hidden) "games.unhide" else "games.hide"), "game-menu.hide") {
+                GameMenuAction(icon = if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, label = str(if (hidden) "games.unhide" else "games.hide"), id = "game-menu.hide") {
                     viewModel.setHidden(game, !hidden)
                     menuGame = null
                 }
-                GameMenuAction("⚑", str("bugreport.menu.game"), "game-menu.report") {
+                GameMenuAction(icon = Icons.Outlined.Flag, label = str("bugreport.menu.game"), id = "game-menu.report") {
                     menuGame = null
                     scope.launch { com.armsx2.ui.bugreport.BugReportFlow.openForGame(context, game) }
                 }
@@ -1441,7 +1483,12 @@ private fun CategoryManageSheet(
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("\uD83D\uDDD1\uFE0F", Modifier.padding(end = 10.dp))
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(end = 10.dp).size(20.dp)
+                        )
                         Text(
                             str("games.categories.delete"),
                             color = MaterialTheme.colorScheme.error,
@@ -1588,7 +1635,7 @@ private fun CategorySheet(game: GameInfo, onDismiss: () -> Unit) {
 
 @Composable
 private fun GameMenuAction(
-    glyph: String,
+    icon: ImageVector,
     label: String,
     id: String,
     trailing: String? = null,
@@ -1608,7 +1655,12 @@ private fun GameMenuAction(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(glyph, color = MaterialTheme.colorScheme.primary, fontSize = 20.sp)
+            androidx.compose.material3.Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
             Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             trailing?.let {
                 Text(
@@ -1680,14 +1732,14 @@ private fun LibraryOverflowMenu(
             fontWeight = FontWeight.Bold,
         )
         LibraryOverflowItem(
-            glyph = "A–Z",
+            icon = Icons.Outlined.SortByAlpha,
             label = str("games.overflow.sortTitle"),
             selected = selectedSort == HomeSort.Title,
         ) {
             closeThen { onSort(HomeSort.Title) }
         }
         LibraryOverflowItem(
-            glyph = "⇅",
+            icon = Icons.Outlined.Sort,
             label = str("games.overflow.sortRecent"),
             selected = selectedSort == HomeSort.RecentlyPlayed,
         ) {
@@ -1707,7 +1759,7 @@ private fun LibraryOverflowMenu(
             val on = com.armsx2.memcard.MemcardCovers.enabled.value
             val animated = com.armsx2.memcard.MemcardCovers.animate.value
             LibraryOverflowItem(
-                glyph = "▤",
+                icon = Icons.Outlined.SdCard,
                 label = str("games.overflow.memcardCovers"),
                 trailing = when {
                     !on -> str("common.off")
@@ -1728,9 +1780,8 @@ private fun LibraryOverflowMenu(
             }
         }
         LibraryOverflowItem(
-            glyph = "🏛",
+            icon = Icons.Outlined.AccountBalance,
             label = str("games.overflow.iconViewer"),
-            iconRes = com.armsx2.R.drawable.ic_museum,
         ) {
             closeThen { MemcardIconViewerState.open.value = true }
         }
@@ -1739,7 +1790,7 @@ private fun LibraryOverflowMenu(
         run {
             val spin = com.armsx2.memcard.MemcardCovers.spin.value
             LibraryOverflowItem(
-                glyph = "↻",
+                icon = Icons.Outlined.Sync,
                 label = str("games.overflow.iconMotion"),
                 trailing = if (spin) str("games.overflow.iconMotion.spin") else str("games.overflow.iconMotion.noSpin"),
             ) {
@@ -1749,7 +1800,7 @@ private fun LibraryOverflowMenu(
         run {
             remember { LibraryScreensaver.load() }
             LibraryOverflowItem(
-                glyph = "☾",
+                icon = Icons.Outlined.DarkMode,
                 label = str("games.overflow.screensaver"),
                 trailing = if (LibraryScreensaver.enabled.value) {
                     str("screensaver.minutes").replace("%d", LibraryScreensaver.minutes.intValue.toString())
@@ -1764,7 +1815,7 @@ private fun LibraryOverflowMenu(
             val onlineStatus = com.armsx2.memcard.OnlineIcons.status.value
             val onlineCount = remember(com.armsx2.memcard.OnlineIcons.generation.intValue) { com.armsx2.memcard.OnlineIcons.installedHashes().size }
             LibraryOverflowItem(
-                glyph = "⇩",
+                icon = Icons.Outlined.CloudDownload,
                 label = str("games.overflow.onlineIcons"),
                 trailing = when {
                     onlineStatus is com.armsx2.memcard.OnlineIcons.Status.Working && onlineStatus.total > 0 ->
@@ -1772,24 +1823,23 @@ private fun LibraryOverflowMenu(
                     onlineCount > 0 -> "%,d".format(onlineCount)
                     else -> null
                 },
-                iconRes = com.armsx2.R.drawable.ic_download,
             ) {
                 closeThen { MemcardIconViewerState.online.value = true }
             }
         }
-        LibraryOverflowItem(glyph = "?", label = str("games.overflow.memcardInfo")) {
+        LibraryOverflowItem(icon = Icons.Outlined.Info, label = str("games.overflow.memcardInfo")) {
             closeThen { MemcardIconViewerState.info.value = true }
         }
         OverflowSeparator()
         LibraryOverflowItem(
-            glyph = if (use3dCovers) "3D" else "2D",
+            icon = if (use3dCovers) Icons.Outlined.ViewInAr else Icons.Outlined.Image,
             label = str("games.overflow.coverStyle"),
             trailing = if (use3dCovers) "3D" else "2D",
         ) {
             closeThen(onToggleCoverStyle)
         }
         LibraryOverflowItem(
-            glyph = "Aa",
+            icon = Icons.Outlined.TextFields,
             label = str("games.overflow.customNames"),
             trailing = if (customNames) str("common.on") else str("common.off"),
         ) {
@@ -1802,7 +1852,7 @@ private fun LibraryOverflowMenu(
             val regionCtx = androidx.compose.ui.platform.LocalContext.current
             val r = com.armsx2.CoverRegionIndex.region.intValue
             LibraryOverflowItem(
-                glyph = "A/あ",
+                icon = Icons.Outlined.Language,
                 label = str("games.overflow.coverRegion"),
                 trailing = str(
                     when (r) {
@@ -1821,14 +1871,14 @@ private fun LibraryOverflowMenu(
             }
         }
         LibraryOverflowItem(
-            glyph = "A/あ",
+            icon = Icons.Outlined.Translate,
             label = str("games.overflow.englishTitles"),
             trailing = if (englishTitles) str("common.on") else str("common.off"),
         ) {
             closeThen(onToggleEnglishTitles)
         }
         LibraryOverflowItem(
-            glyph = "◍",
+            icon = Icons.Outlined.Visibility,
             label = str("games.overflow.showHidden"),
             trailing = if (showHidden) str("common.on") else str("common.off"),
         ) {
@@ -1837,20 +1887,18 @@ private fun LibraryOverflowMenu(
         // Only the arcade games (Namco System 246/256), or every game; the drawer's red arcade logo,
         // in its own colour.
         LibraryOverflowItem(
-            glyph = "◍",
+            icon = Icons.Outlined.SportsEsports,
             label = str("games.overflow.arcadeOnly"),
             trailing = if (arcadeOnly) str("common.on") else str("common.off"),
-            iconRes = com.armsx2.R.drawable.ic_arcade,
-            iconTint = Color.Unspecified,
         ) {
             closeThen(onToggleArcadeOnly)
         }
         OverflowSeparator()
-        LibraryOverflowItem("▧", str("games.background.choose")) {
+        LibraryOverflowItem(icon = Icons.Outlined.Wallpaper, label = str("games.background.choose")) {
             closeThen(onChooseBackground)
         }
         if (hasCustomBackground) {
-            LibraryOverflowItem("×", str("games.background.clear")) {
+            LibraryOverflowItem(icon = Icons.Outlined.Clear, label = str("games.background.clear")) {
                 closeThen(onClearBackground)
             }
         }
@@ -1866,9 +1914,8 @@ private fun LibraryOverflowMenu(
         // onExitApp was still a parameter and its confirmation dialog was still wired up — only
         // the row that reached them had been removed. So this restores the item, not the feature.
         LibraryOverflowItem(
-            glyph = "⏻",
+            icon = Icons.Outlined.PowerSettingsNew,
             label = str("games.toolbar.exit"),
-            iconRes = com.armsx2.R.drawable.ic_power,
             iconTint = Color(0xFFE60012),
         ) {
             closeThen(onExitApp)
@@ -1888,8 +1935,8 @@ private fun OverflowSeparator() {
 
 @Composable
 private fun LibraryOverflowItem(
-    glyph: String,
     label: String,
+    icon: ImageVector? = null,
     selected: Boolean = false,
     trailing: String? = null,
     // A real drawable instead of a text glyph. Exit needs this: the power symbol (U+23FB) is not
@@ -1923,12 +1970,12 @@ private fun LibraryOverflowItem(
                             tint = iconTint ?: MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(19.dp),
                         )
-                    } else {
-                        Text(
-                            text = glyph,
-                            fontSize = if (glyph.length > 2) 11.sp else 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                    } else if (icon != null) {
+                        androidx.compose.material3.Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else (iconTint ?: MaterialTheme.colorScheme.onSurface),
+                            modifier = Modifier.size(19.dp),
                         )
                     }
                 }
@@ -1936,7 +1983,11 @@ private fun LibraryOverflowItem(
         },
         trailingIcon = {
             when {
-                selected -> Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                selected -> androidx.compose.material3.Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
                 trailing != null -> Text(trailing, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
             }
         },
@@ -2062,7 +2113,12 @@ private fun GameListCard(game: GameInfo, selected: Boolean, onClick: () -> Unit,
                 Spacer(Modifier.height(5.dp))
                 GameMetadata(game)
             }
-            Text("▶", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(10.dp))
+            androidx.compose.material3.Icon(
+                imageVector = Icons.Outlined.PlayArrow,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(10.dp)
+            )
         }
     }
 }
@@ -2091,7 +2147,16 @@ private fun GameMetadata(game: GameInfo) {
         StatusChip(game.extension.ifBlank { game.platform.key.uppercase() })
         game.regionFlag?.let { Text(it, fontSize = 13.sp) }
         if (game.compatibility > 0) {
-            Text("★".repeat(game.compatibility), color = Color(0xFFFFC857), fontSize = 9.sp, maxLines = 1)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                repeat(game.compatibility) {
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Outlined.Star,
+                        contentDescription = null,
+                        tint = Color(0xFFFFC857),
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
         }
         // Playtime and last-known achievement progress, shown only when there is something to show
         // so an untouched library looks exactly as before. Playtime is app-side per serial; the
@@ -2102,7 +2167,16 @@ private fun GameMetadata(game: GameInfo) {
             com.armsx2.PlayTime.formatPlayed(com.armsx2.PlayTime.playedSeconds(game.serial))
         }
         if (played.isNotEmpty()) {
-            Text("⏳ $played", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.Outlined.HourglassEmpty,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(played, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
+            }
         }
         val ach = remember(game.serial, rev) { com.armsx2.PlayTime.achievements(game.serial) }
         ach?.let { p ->
@@ -2113,16 +2187,29 @@ private fun GameMetadata(game: GameInfo) {
             val leadHardcore = p.hardcore > 0
             val shown = if (leadHardcore) p.hardcore else p.softcore
             val mastered = if (leadHardcore) p.masteredHardcore else p.masteredSoftcore
-            Text(
-                "🏆 $shown/${p.total}",
-                color = when {
-                    mastered && leadHardcore -> Color(0xFFFFC857)  // gold: mastered in hardcore
-                    mastered -> Color(0xFFB9C2CC)                  // silver: completed in softcore
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                fontSize = 11.sp,
-                maxLines = 1,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.Outlined.EmojiEvents,
+                    contentDescription = null,
+                    tint = when {
+                        mastered && leadHardcore -> Color(0xFFFFC857)  // gold: mastered in hardcore
+                        mastered -> Color(0xFFB9C2CC)                  // silver: completed in softcore
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    "$shown/${p.total}",
+                    color = when {
+                        mastered && leadHardcore -> Color(0xFFFFC857)  // gold: mastered in hardcore
+                        mastered -> Color(0xFFB9C2CC)                  // silver: completed in softcore
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                )
+            }
             if (leadHardcore) {
                 Text(
                     "HC",
@@ -2717,4 +2804,3 @@ private fun ShelfGameCard(game: GameInfo, width: Dp, reflectionHeight: Dp, selec
         }
     }
 }
-
