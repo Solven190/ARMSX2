@@ -22,6 +22,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Disc
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SatelliteAlt
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.VideogameAsset
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Column
@@ -55,6 +73,7 @@ import android.content.res.Configuration
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,7 +124,7 @@ private fun openExternalUrl(context: Context, url: String) {
 
 private data class DrawerItem(
     val titleKey: String,
-    val glyph: String,
+    val icon: ImageVector? = null,
     // A nav destination OR an action (onAction). Action rows (e.g. Boot BIOS) run onAction and
     // close the drawer instead of navigating to a screen.
     val destination: AppRoute? = null,
@@ -193,57 +212,57 @@ private fun DrawerContent(selected: AppRoute, onNavigate: (AppRoute) -> Unit, on
     // Intuitive glyphs that read as what they do — matching the in-game overlay's emoji-icon style
     // (the old box-drawing characters like ▦ ◉ ⌁ ✦ were unclear per tester feedback).
     val primary = listOf(
-        DrawerItem("games.section.library", "🎮", AppRoute.Home),
+        DrawerItem("games.section.library", Icons.Default.VideogameAsset, AppRoute.Home),
         // Boot straight into the PS2 system BIOS with no disc — distinct from "BIOS Location"
         // below, which only points the emulator at your BIOS file.
-        DrawerItem("bios.boot.title", "▶️", onAction = { MainActivityRuntime.startBios(); onDismiss() }),
+        DrawerItem("bios.boot.title", Icons.Default.PlayArrow, onAction = { MainActivityRuntime.startBios(); onDismiss() }),
         // Pick a file and run it, without it joining the library. Sits next to Boot BIOS because
         // both are "start something that is not a library entry".
-        DrawerItem("action.launchGame", "📂", onAction = { MainActivityRuntime.promptLaunchGame(); onDismiss() }),
-        DrawerItem("ra.title", "🏆", AppRoute.Achievements, iconRes = com.armsx2.R.drawable.ic_trophy,
+        DrawerItem("action.launchGame", Icons.Default.FolderOpen, onAction = { MainActivityRuntime.promptLaunchGame(); onDismiss() }),
+        DrawerItem("ra.title", null, AppRoute.Achievements, iconRes = com.armsx2.R.drawable.ic_trophy,
             iconTint = TrophyGold),
-        DrawerItem("action.settings", "⚙️", AppRoute.Settings()),
+        DrawerItem("action.settings", Icons.Default.Settings, AppRoute.Settings()),
     )
     val managers = listOf(
         // Moved off the library overflow menu, which was its only entry point. Sits first, beside
         // BIOS Location: both answer "where are my files".
-        DrawerItem("games.overflow.setup", "📂",
+        DrawerItem("games.overflow.setup", Icons.Default.Folder,
             onAction = { MainActivityRuntime.reopenSetup(); onDismiss() }),
-        DrawerItem("setup.step.bios.title", "📀", AppRoute.BiosManager()),
-        DrawerItem("memcard.title", "💾", AppRoute.MemoryCardManager()),
-        DrawerItem("savestate.title.loadManage", "📥", AppRoute.SaveManager()),
-        DrawerItem("tab.controls", "🕹️", AppRoute.ControllerManager),
-        DrawerItem("patches.dialog.patchesAndCheats", "🪄", AppRoute.PatchManager),
-        DrawerItem("renderer.section.texturePacks", "🖌️", AppRoute.TextureManager),
+        DrawerItem("setup.step.bios.title", Icons.Default.Disc, AppRoute.BiosManager()),
+        DrawerItem("memcard.title", Icons.Default.Save, AppRoute.MemoryCardManager()),
+        DrawerItem("savestate.title.loadManage", Icons.Default.Download, AppRoute.SaveManager()),
+        DrawerItem("tab.controls", Icons.Default.SportsEsports, AppRoute.ControllerManager),
+        DrawerItem("patches.dialog.patchesAndCheats", Icons.Default.AutoFixHigh, AppRoute.PatchManager),
+        DrawerItem("renderer.section.texturePacks", Icons.Default.Brush, AppRoute.TextureManager),
         // Namco System 246/256 arcade games: their folder, boot files, BIOS and imports.
-        DrawerItem("arcade.title", "👾", AppRoute.Arcade, glyphIcon = com.armsx2.R.drawable.ic_arcade),
+        DrawerItem("arcade.title", null, AppRoute.Arcade, glyphIcon = com.armsx2.R.drawable.ic_arcade),
     )
     // Link-out rows: they reuse the existing onAction path (like Boot BIOS) rather than a
     // destination, so they leave the drawer via startActivity and close it behind them.
     val about = listOf(
-        DrawerItem("about.discord", "💬", iconRes = com.armsx2.R.drawable.ic_discord,
+        DrawerItem("about.discord", null, iconRes = com.armsx2.R.drawable.ic_discord,
             onAction = { openExternalUrl(context, DiscordUrl); onDismiss() }),
-        DrawerItem("about.github", "🐙", iconRes = com.armsx2.R.drawable.ic_github,
+        DrawerItem("about.github", null, iconRes = com.armsx2.R.drawable.ic_github,
             onAction = { openExternalUrl(context, GithubUrl); onDismiss() }),
-        DrawerItem("about.website", "🌐", onAction = { openExternalUrl(context, WebsiteUrl); onDismiss() }),
+        DrawerItem("about.website", Icons.Default.Language, onAction = { openExternalUrl(context, WebsiteUrl); onDismiss() }),
         // In-app release notes. A destination rather than a link-out because the point is to read
         // what changed without leaving for a browser — the GitHub row above is still there for
         // anyone who wants the repo itself.
-        DrawerItem("news.title", "📰", AppRoute.News),
-        DrawerItem("friends.title", "👥", AppRoute.Friends, friendsBadge = true),
-        DrawerItem("remoteplay.title", "📡", AppRoute.RemotePlay),
+        DrawerItem("news.title", Icons.Default.Article, AppRoute.News),
+        DrawerItem("friends.title", Icons.Default.People, AppRoute.Friends, friendsBadge = true),
+        DrawerItem("remoteplay.title", Icons.Default.SatelliteAlt, AppRoute.RemotePlay),
         // About left the settings tab strip: it is a read-only page, not a setting, and it sat in
         // the tab row costing a slot on every settings visit.
-        DrawerItem("about.title", "ℹ️", AppRoute.About),
+        DrawerItem("about.title", Icons.Default.Info, AppRoute.About),
         // Problems outside a game (or with the one running behind the library). In-game reports
         // start from the pause menu, where the scene can be captured.
-        DrawerItem("bugreport.menu.title", "⚑",
+        DrawerItem("bugreport.menu.title", Icons.Default.Flag,
             onAction = { com.armsx2.ui.bugreport.BugReportFlow.openGeneral(context); onDismiss() }),
     )
     // Exit gets its own trailing section. It was briefly filed under ABOUT, next to the Discord and
     // GitHub links, where nobody would think to look for "quit".
     val session = listOf(
-        DrawerItem("games.toolbar.exit", "⏻", iconRes = com.armsx2.R.drawable.ic_power,
+        DrawerItem("games.toolbar.exit", null, iconRes = com.armsx2.R.drawable.ic_power,
             iconTint = ExitRed, onAction = { exitConfirm.value = true }),
     )
 
@@ -303,7 +322,7 @@ private fun DrawerSection(
             // destination today, but that is luck; titleKeys are unique by construction.
             controllerId = "drawer.${item.titleKey}",
             title = str(item.titleKey),
-            glyph = item.glyph,
+            icon = item.icon,
             iconRes = item.iconRes,
             iconTint = item.iconTint,
             glyphIcon = item.glyphIcon,
@@ -318,7 +337,7 @@ private fun DrawerSection(
 private fun DrawerRow(
     controllerId: String,
     title: String,
-    glyph: String,
+    icon: ImageVector?,
     iconRes: Int? = null,
     // Null tints the icon like the row's text. Only the trophy wants a fixed brand colour;
     // the About rows' marks must follow the row so they don't render gold.
@@ -346,7 +365,7 @@ private fun DrawerRow(
         ) {
             if (glyphIcon != null) {
                 Box(Modifier.width(32.dp)) {
-                    com.armsx2.ui.common.GlyphSizedImage(glyph, 22.sp, painterResource(glyphIcon), FontWeight.Bold)
+                    com.armsx2.ui.common.GlyphSizedImage(title, 22.sp, painterResource(glyphIcon), FontWeight.Bold)
                 }
             } else if (iconRes != null) {
                 Box(Modifier.width(32.dp), contentAlignment = Alignment.Center) {
@@ -354,13 +373,19 @@ private fun DrawerRow(
                 }
             } else if (friendsBadge) {
                 Box(Modifier.width(32.dp)) {
-                    Text(glyph, color = contentColor, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    if (icon != null) {
+                        Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(22.dp))
+                    }
                     com.armsx2.ui.friends.FriendsCountBadge(
                         Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-6).dp),
                     )
                 }
             } else {
-                Text(glyph, color = contentColor, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(32.dp))
+                if (icon != null) {
+                    Box(Modifier.width(32.dp), contentAlignment = Alignment.Center) {
+                        Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(22.dp))
+                    }
+                }
             }
             Text(title, color = contentColor, style = MaterialTheme.typography.titleMedium)
         }
