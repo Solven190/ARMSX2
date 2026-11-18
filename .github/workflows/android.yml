@@ -8,6 +8,10 @@
 #                 (tools/build-release-targets.sh: dual page-size cores, PGO, rotation
 #                 signing). One matrix job per tier, since each builds the core twice.
 #
+# Version: edit VN and VC in the top-level env block below before running.
+#   VN  versionName, also part of the APK file name (e.g. 2.8.5)
+#   VC  versionCode, must be higher than the installed app or Android refuses the update
+#
 # Required secrets (the nightly already uses the first six; they are the stable keys):
 #   NIGHTLY_DEBUG_KS_B64, NIGHTLY_RELEASE_KS_B64, NIGHTLY_LINEAGE_B64,
 #   NIGHTLY_RELEASE_KS_PASS, NIGHTLY_RELEASE_KEY_ALIAS, NIGHTLY_RELEASE_KEY_PASS
@@ -17,63 +21,27 @@
 #   RA_UA_VERSION      the ARMSX2 client's RetroAchievements version, which pcsx2/Host.cpp reads
 #                      from the gitignored ra_ua_secret.h. Without it RetroAchievements allows
 #                      softcore only, so the Android build fails when it is unset.
-name: Android CI 
+name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version, without a leading v (e.g. 2.8.5). Becomes the Android versionName.'
-        required: true
-        type: string
-      version_code:
-        description: 'Android versionCode. Must be higher than the last stable release, or installed apps will not update.'
-        required: true
-        type: string
 
 permissions:
   contents: read
 
+env:
+  VN: "2.8.5"
+  VC: "285"
+
 concurrency:
-  group: release-${{ inputs.version }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  # ---- prepare: validate inputs ------------------------------------------
-  prepare:
-    name: Validate inputs
-    if: ${{ github.repository == 'ARMSX2/ARMSX2' }}
-    runs-on: ubuntu-24.04
-    env:
-      GH_TOKEN: ${{ github.token }}
-      VN: ${{ inputs.version }}
-      VC: ${{ inputs.version_code }}
-    steps:
-      - name: Check the version inputs
-        run: |
-          [[ "$VN" =~ ^[0-9]+(\.[0-9]+)+$ ]] || { echo "::error::version '$VN' is not like 2.8.5"; exit 1; }
-          [[ "$VC" =~ ^[0-9]+$ ]] || { echo "::error::version_code '$VC' is not a number"; exit 1; }
-
-      # A versionCode at or below the installed one makes Android refuse the update, and
-      # nothing about the APK itself shows that. Compare against the last stable release.
-      - name: Check the versionCode goes up
-        run: |
-          LATEST="$(gh release list -R "$GITHUB_REPOSITORY" --exclude-pre-releases --exclude-drafts -L 100 \
-            --json tagName --jq '[.[] | .tagName | select(test("^[0-9]+[.][0-9]+"))] | .[0]')"
-          if [ -z "$LATEST" ]; then
-            echo "No previous stable release; skipping."
-            exit 0
-          fi
-          gh release download "$LATEST" -R "$GITHUB_REPOSITORY" -p '*-sdk26.apk' -O last.apk
-          AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -1)"
-          LAST_VC="$("$AAPT" dump badging last.apk | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" | head -1)"
-          echo "$LATEST has versionCode $LAST_VC"
-          [ "$VC" -gt "$LAST_VC" ] || { echo "::error::version_code $VC must be higher than $LATEST's $LAST_VC"; exit 1; }
-
   # ---- Android: one job per tier ------------------------------------------
   android:
     name: Android (${{ matrix.target }})
-    needs: prepare
+    if: ${{ github.repository == 'ARMSX2/ARMSX2' }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -145,10 +113,9 @@ jobs:
           printf '%s' "$RELEASE_KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
           printf '%s' "$LINEAGE_B64"    | base64 -d > "$RUNNER_TEMP/lineage.bin"
 
+      # VN and VC come from the top-level env block.
       - name: Build ${{ matrix.target }} APK
         env:
-          VC: ${{ inputs.version_code }}
-          VN: ${{ inputs.version }}
           OUTDIR: ${{ runner.temp }}/apk
           PROF: ${{ github.workspace }}/platforms/android/pgo/armsx2.profdata
           DEBUG_KS: ${{ runner.temp }}/debug.jks
