@@ -1,5 +1,5 @@
+@file:Suppress("UnstableApiUsage", "DEPRECATION")
 package com.armsx2.ui.emulation
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseIn
@@ -40,7 +40,35 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.DragIndicator
+import androidx.compose.material.icons.filled.Eject
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -59,12 +87,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -124,7 +154,6 @@ fun EmulationMenuScreen(viewModel: EmulationMenuViewModel = viewModel()) {
             }
         }
     }
-
     DisposableEffect(viewModel, closeMenu) {
         viewModel.dismissHandler = closeMenu
         EmulationMenuInputController.bind(viewModel)
@@ -134,7 +163,6 @@ fun EmulationMenuScreen(viewModel: EmulationMenuViewModel = viewModel()) {
         }
     }
     LaunchedEffect(Unit) { shown = true }
-
     // Hand pad input to the Friends panel while it is open, and give it back on close.
     //
     // The nav registry is shared between the menu and the panel, so ownership has to be explicit:
@@ -165,7 +193,6 @@ fun EmulationMenuScreen(viewModel: EmulationMenuViewModel = viewModel()) {
     // pressing Back would dismiss the entire pause menu and resume the game, which is not what
     // anyone means by "go back" from a panel sitting on top of another panel.
     BackHandler(onBack = { if (friendsOpen) friendsOpen = false else closeMenu() })
-
     state.pendingHardcore?.let { enabling ->
         androidx.compose.runtime.DisposableEffect(Unit) {
             com.armsx2.MenuSfx.play(com.armsx2.MenuSfx.Event.POPUP_OPEN)
@@ -184,7 +211,6 @@ fun EmulationMenuScreen(viewModel: EmulationMenuViewModel = viewModel()) {
             onDismiss = viewModel::cancelToggleHardcore,
         )
     }
-
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val compact = maxWidth < 700.dp
         // The one place the layout is chosen is the one place that tells the pad which way it
@@ -280,7 +306,6 @@ fun EmulationMenuScreen(viewModel: EmulationMenuViewModel = viewModel()) {
                 }
             }
         }
-
         // Friends, as its own panel over the menu.
         //
         // Composed here rather than as an AlertDialog on purpose: a Dialog gets its own focused
@@ -478,11 +503,11 @@ private fun MenuRailTab(tab: EmulationMenuTab, active: Boolean, onSelect: (Emula
         ),
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = tabGlyph(tab),
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            Icon(
+                imageVector = tabIcon(tab),
+                contentDescription = label,
+                tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(23.dp),
             )
         }
     }
@@ -524,11 +549,11 @@ private fun MenuTab(tab: EmulationMenuTab, active: Boolean, onSelect: (Emulation
                 else MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = tabGlyph(tab),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    Icon(
+                        imageVector = tabIcon(tab),
+                        contentDescription = null,
+                        tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -544,19 +569,16 @@ private fun MenuTab(tab: EmulationMenuTab, active: Boolean, onSelect: (Emulation
     }
 }
 
-// Rail tab icons. No monochrome Unicode exists for gamepad/wrench/trophy/display, so those
-// use color emoji (Android's own emoji font draws them); Session keeps its clean text
-// glyph. Performance uses the high-voltage emoji so it reads as a yellow lightning bolt.
-// Options carries the settings gear; the full-settings shortcut below the rail divider uses
-// a distinct "open" glyph so there aren't two gears.
-private fun tabGlyph(tab: EmulationMenuTab): String = when (tab) {
-    EmulationMenuTab.Session -> "☰"
-    EmulationMenuTab.Graphics -> "🖥️"
-    EmulationMenuTab.Fixes -> "🔧"
-    EmulationMenuTab.Performance -> "⚡"
-    EmulationMenuTab.Controls -> "🎮"
-    EmulationMenuTab.Options -> "⚙"
-    EmulationMenuTab.Achievements -> "🏆"
+// Rail tab icons — replaced Unicode emoji with Material You icons for consistent
+// monochrome rendering across devices and proper tinting with the theme palette.
+private fun tabIcon(tab: EmulationMenuTab): ImageVector = when (tab) {
+    EmulationMenuTab.Session -> Icons.Default.Menu
+    EmulationMenuTab.Graphics -> Icons.Default.Tv
+    EmulationMenuTab.Fixes -> Icons.Default.Build
+    EmulationMenuTab.Performance -> Icons.Default.Bolt
+    EmulationMenuTab.Controls -> Icons.Default.SportsEsports
+    EmulationMenuTab.Options -> Icons.Default.Settings
+    EmulationMenuTab.Achievements -> Icons.Default.EmojiEvents
 }
 
 @Composable
@@ -636,15 +658,6 @@ private fun MenuHeader(
                 )
             }
         }
-
-        // Clock + battery, same cluster as the library toolbar. Worth having here specifically:
-        // this menu is what you open mid-session on a handheld, so it's exactly when you want to
-        // know the time and how much charge is left. Not controllerFocusable — it's a readout.
-        Spacer(Modifier.width(8.dp))
-        com.armsx2.ui.common.LibraryStatusCluster(
-            Modifier.align(Alignment.CenterVertically),
-        )
-
         // Friends, in the header where it is always visible, with the online count on it. Shown
         // even where Discord is not available: remote play hosting lives behind it too, and
         // hosting does not need Discord. The Discord parts inside hide themselves there.
@@ -676,15 +689,15 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
     val gsDumpQueued = str("gsdump.quick.queued")
     ActionGrid(
         actions = listOf(
-            MenuAction(str("action.resume"), str("action.play"), "▶", Success, viewModel::resume),
+            MenuAction(str("action.resume"), str("action.play"), Icons.Default.PlayArrow, Success, viewModel::resume),
             MenuAction(
                 str("action.fastForward"),
                 if (MainActivityRuntime.fastForwardToggleActive) str("action.fastForward.on") else str("action.fastForward.detail"),
-                "⏩",
+                Icons.Default.FastForward,
                 if (MainActivityRuntime.fastForwardToggleActive) Success else null,
             ) { MainActivityRuntime.instance?.toggleFastForward(); viewModel.resume() },
-            MenuAction(str("memcard.restart"), str("action.reset"), "↻", null, MainActivityRuntime::restart),
-            MenuAction(str("action.swapDisc"), str("action.swapDisc.detail"), "⏏", null, MainActivityRuntime::promptSwapDisc),
+            MenuAction(str("memcard.restart"), str("action.reset"), Icons.Default.RestartAlt, null, MainActivityRuntime::restart),
+            MenuAction(str("action.swapDisc"), str("action.swapDisc.detail"), Icons.Default.Eject, null, MainActivityRuntime::promptSwapDisc),
             // Here and not only in Settings > Renderer, where it sat at the bottom of a long page:
             // a GS dump is what gets asked for when someone reports a graphics bug, and this is
             // one tap from the game. It also resumes, because the dump is of the NEXT frame the GS
@@ -692,7 +705,7 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
             //
             // It is now a choice: keep the dump in the snaps folder as before, or start a problem
             // report with a fresh dump of this scene.
-            MenuAction(str("renderer.gsDump.label"), str("gsdump.quick.detail"), "⧉", null) {
+            MenuAction(str("renderer.gsDump.label"), str("gsdump.quick.detail"), Icons.Default.ContentCopy, null) {
                 com.armsx2.ui.bugreport.askGsDumpChoice {
                     runCatching { kr.co.iefriends.pcsx2.NativeApp.captureGsDump(1) }
                     android.widget.Toast.makeText(context, gsDumpQueued, android.widget.Toast.LENGTH_LONG).show()
@@ -700,11 +713,11 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
                 }
             },
             // Best place to report graphics and slowness: the scene is still here to capture.
-            MenuAction(str("bugreport.menu.title"), str("bugreport.menu.detail"), "⚑", null) {
+            MenuAction(str("bugreport.menu.title"), str("bugreport.menu.detail"), Icons.Default.Flag, null) {
                 com.armsx2.ui.bugreport.BugReportFlow.openInGame(context)
             },
         ) + arcadeActions(viewModel) + listOf(
-            MenuAction(str("action.close"), MainActivityRuntime.currentGame.value?.title.orEmpty(), "■", Danger) {
+            MenuAction(str("action.close"), MainActivityRuntime.currentGame.value?.title.orEmpty(), Icons.Default.Stop, Danger) {
                 MainActivityRuntime.closeGame()
             },
         ),
@@ -869,10 +882,10 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
         // auto-save/-load toggles), matching the old UI. The slot chips above stay
         // the quick-slot selector used by the on-screen / hotkey quick-save.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CompactAction(str("savestate.title.save"), "↥", Modifier.weight(1f)) {
+            CompactAction(str("savestate.title.save"), Icons.Default.Upload, Modifier.weight(1f)) {
                 com.armsx2.ui.WindowImpl.openInGameScreen(com.armsx2.ui.InGameScreen.SaveState)
             }
-            CompactAction(str("touch.stateAction.load"), "↧", Modifier.weight(1f)) {
+            CompactAction(str("touch.stateAction.load"), Icons.Default.Download, Modifier.weight(1f)) {
                 com.armsx2.ui.WindowImpl.openInGameScreen(com.armsx2.ui.InGameScreen.LoadState)
             }
         }
@@ -919,7 +932,7 @@ private fun GraphicsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
     // Coalesce Render Passes is deliberately NOT here. It only helps Dirge of Cerberus, and the
     // game database already turns it on for Dirge, so it lives in All Settings > Renderer >
     // advanced and nowhere a player tuning performance would reach for it.
-    CompactAction(str("backend.applyRestart"), "↻", Modifier.fillMaxWidth(), MainActivityRuntime::restart)
+    CompactAction(str("backend.applyRestart"), Icons.Default.RestartAlt, Modifier.fillMaxWidth(), MainActivityRuntime::restart)
     HorizontalOptions(
         title = str("renderer.upscale.label"),
         // Share the full settings-tab list so the sub-native 0.25/0.5/0.75/Native
@@ -974,7 +987,7 @@ private fun GraphicsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
         // its own copy of the same control, and updating only that one leaves the in-game menu
         // silently unable to reach the new option.
         val sgsrOn = settings.graphics.upscaler == com.armsx2.config.Settings.UPSCALER_SGSR ||
-            settings.graphics.upscaler == com.armsx2.config.Settings.UPSCALER_SGSR_EDGE
+                settings.graphics.upscaler == com.armsx2.config.Settings.UPSCALER_SGSR_EDGE
         val fsr1On = settings.graphics.upscaler == com.armsx2.config.Settings.UPSCALER_FSR1 || sgsrOn
         HorizontalOptions(
             title = str("renderer.upscaler.label"),
@@ -1016,7 +1029,7 @@ private fun GraphicsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
     // Texture packs, straight after the resolution they are usually paired with. They used to be
     // split between the bottom of this page (the switches) and the Options page (the manager),
     // which for one of the most-used features on the device was two places too deep.
-    CompactAction(str("renderer.section.texturePacks"), "▣", Modifier.fillMaxWidth(), viewModel::openTextures)
+    CompactAction(str("renderer.section.texturePacks"), Icons.Default.ViewModule, Modifier.fillMaxWidth(), viewModel::openTextures)
     MenuSwitchRow(str("renderer.loadTexturePacks.label"), settings.graphics.loadTextureReplacements, field = "loadTextureReplacements") {
         viewModel.updateSettings { current -> current.copy(graphics = current.graphics.copy(loadTextureReplacements = it)) }
     }
@@ -1072,8 +1085,8 @@ private fun GraphicsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
         // no hint that the feature existed or where to add one.
         HorizontalOptions(
             title = str("renderer.overlayArt.label"),
-            options = listOf("" to str("renderer.overlayArt.none")) +
-                entries.map { it.imagePath to it.name },
+            options = listOf(" " to str("renderer.overlayArt.none")) +
+                    entries.map { it.imagePath to it.name },
             selected = com.armsx2.OverlayRepo.activePath.value,
             onSelect = { com.armsx2.OverlayRepo.setActive(it) },
         )
@@ -1203,7 +1216,7 @@ private fun GraphicsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
     // RetroArch shaders, end-to-end in-game: toggle → pick a preset → download more.
     // Same composables the Settings renderer tab renders (single definition in ui/common);
     // only the save lambda differs. updateSettings routes through InGameOverlay.saveSettings,
-    // which persists via ConfigStore.save(scope, serial) — honouring the overlay's
+    // which persists via ConfigStore. save(scope, serial) — honouring the overlay's
     // Global/Game scope — and live-applies with Settings.applyTo(). Identical to how every
     // other row in this pane (shadeboost, tvShader, dithering…) saves; both GS keys ride
     // writeGsToNative(), and the device rebuilds the chain on the next frame, so a preset
@@ -1470,7 +1483,6 @@ private fun ControlsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
     MenuSwitchRow(str("network.emulateUsbKeyboard"), state.settings.system.usbKeyboard, field = "usbKeyboard") {
         viewModel.updateSettings { current -> current.copy(system = current.system.copy(usbKeyboard = it)) }
     }
-
     // Gesture control, in-game. Worth having here rather than only in All Settings: the swipe
     // distance and the Tap/Hold choice are things you only discover the right value for while
     // actually playing, and walking out to the settings tree to nudge them loses the moment.
@@ -1504,16 +1516,16 @@ private fun ControlsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVi
         // The four swipe/double-tap ASSIGNMENTS stay in All Settings — six button pickers would
         // swamp this pane, and you set them once rather than mid-session.
     }
-    CompactAction(str("pad.controllerMapping"), "⌁", Modifier.fillMaxWidth(), viewModel::openControlsManager)
+    CompactAction(str("pad.controllerMapping"), Icons.Default.Gamepad, Modifier.fillMaxWidth(), viewModel::openControlsManager)
     Spacer(Modifier.height(6.dp))
-    CompactAction(str("pad.editTouchLayout"), "✥", Modifier.fillMaxWidth(), viewModel::editTouchControls)
+    CompactAction(str("pad.editTouchLayout"), Icons.Default.DragIndicator, Modifier.fillMaxWidth(), viewModel::editTouchControls)
     Spacer(Modifier.height(6.dp))
     // Sits with the touch layout because it's the same job: what the on-screen pad LOOKS
     // like, right after where it's laid out. Full-screen like Controller mapping.
-    CompactAction(str("tab.skins"), "◈", Modifier.fillMaxWidth(), viewModel::openSkins)
+    CompactAction(str("tab.skins"), Icons.Default.Brush, Modifier.fillMaxWidth(), viewModel::openSkins)
     Spacer(Modifier.height(6.dp))
     // Hotkeys, under Skins: All Settings' Hotkeys page, opened straight over the game.
-    CompactAction(str("tab.hotkeys"), "⌘", Modifier.fillMaxWidth(), viewModel::openHotkeys)
+    CompactAction(str("tab.hotkeys"), Icons.Default.Keyboard, Modifier.fillMaxWidth(), viewModel::openHotkeys)
     // Analog sticks in-game: swap/invert per stick, deadzone and feel. Requested because some
     // games ship no invert option of their own, so changing it meant leaving the game for All
     // Settings mid-session (Sizor). Global scope, matching the rumble/multitap toggles above.
@@ -1536,13 +1548,13 @@ private fun OptionsPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
     val settings = state.settings
     // Item 3: gateway to the full per-game settings (all categories the compact menu omits:
     // OSD, Skins, Audio, Hotkeys, Network, Recompiler, ...).
-    CompactAction(str("action.allSettings"), "⚙", Modifier.fillMaxWidth(), viewModel::openFullSettings)
+    CompactAction(str("action.allSettings"), Icons.Default.Settings, Modifier.fillMaxWidth(), viewModel::openFullSettings)
     Spacer(Modifier.height(6.dp))
     // In-game access to the manager screens (the library drawer's Memory Cards /
     // Patches & Cheats / Controller mapping) — open over the paused game.
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        CompactAction(str("memcard.title"), "▤", Modifier.weight(1f), viewModel::openMemcard)
-        CompactAction(str("patches.dialog.patchesAndCheats"), "✦", Modifier.weight(1f), viewModel::openPatches)
+        CompactAction(str("memcard.title"), Icons.Default.Save, Modifier.weight(1f), viewModel::openMemcard)
+        CompactAction(str("patches.dialog.patchesAndCheats"), Icons.Default.AutoFixHigh, Modifier.weight(1f), viewModel::openPatches)
     }
     // The texture pack manager moved to the Renderer page, under the resolution. Its glyph,
     // "▣", is one already proven to render in the shipped font -- "▩" (U+25A9) and "⏻" (U+23FB)
@@ -1621,7 +1633,7 @@ private fun AchievementsPane(state: EmulationMenuUiState, viewModel: EmulationMe
     ) { on -> viewModel.updateSettings { it.copy(emuCore = it.emuCore.copy(achievements = it.emuCore.achievements.copy(enabled = on))) } }
     Spacer(Modifier.height(4.dp))
     // Gateway to the full RetroAchievements screen (unlock list + presentation options).
-    CompactAction(str("ra.viewAchievements"), "★", Modifier.fillMaxWidth(), viewModel::openAchievements)
+    CompactAction(str("ra.viewAchievements"), Icons.Default.EmojiEvents, Modifier.fillMaxWidth(), viewModel::openAchievements)
     Spacer(Modifier.height(4.dp))
     SectionCard("RetroAchievements") {
         // Signed-in account: avatar + name + both point totals (hardcore / softcore).
@@ -1701,7 +1713,14 @@ private fun InGameAchievementRow(item: AchievementItem) {
                     Modifier.size(40.dp).clip(RoundedCornerShape(9.dp))
                         .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center,
-                ) { Text(if (item.unlocked) "★" else "☆") }
+                ) {
+                    Icon(
+                        imageVector = if (item.unlocked) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
@@ -1743,26 +1762,26 @@ private fun HardcoreBadge() {
 }
 
 /**
- * The arcade cabinet's own buttons, while an arcade game runs: coins, Service and the Test switch.
- * Each goes back to the game, which only sees a press it is running for.
- */
+The arcade cabinet's own buttons, while an arcade game runs: coins, Service and the Test switch.
+Each goes back to the game, which only sees a press it is running for.
+*/
 @Composable
 private fun arcadeActions(viewModel: EmulationMenuViewModel): List<MenuAction> {
     if (com.armsx2.arcade.Arcade.sessionMode.intValue < 0) return emptyList()
     return listOf(
-        MenuAction(str("arcade.coin.p1"), str("arcade.coin.p1.detail"), "¢", null) {
+        MenuAction(str("arcade.coin.p1"), str("arcade.coin.p1.detail"), Icons.Default.MonetizationOn, null) {
             com.armsx2.arcade.Arcade.insertCoin(0)
             viewModel.resume()
         },
-        MenuAction(str("arcade.coin.p2"), str("arcade.coin.p2.detail"), "¢", null) {
+        MenuAction(str("arcade.coin.p2"), str("arcade.coin.p2.detail"), Icons.Default.MonetizationOn, null) {
             com.armsx2.arcade.Arcade.insertCoin(1)
             viewModel.resume()
         },
-        MenuAction(str("arcade.service"), str("arcade.service.detail"), "✚", null) {
+        MenuAction(str("arcade.service"), str("arcade.service.detail"), Icons.Default.Build, null) {
             viewModel.resume()
             com.armsx2.arcade.Arcade.pressService()
         },
-        MenuAction(str("arcade.test"), str("arcade.test.detail"), "⚙", null) {
+        MenuAction(str("arcade.test"), str("arcade.test.detail"), Icons.Default.Settings, null) {
             com.armsx2.arcade.Arcade.toggleTest()
             viewModel.resume()
         },
@@ -1772,7 +1791,7 @@ private fun arcadeActions(viewModel: EmulationMenuViewModel): List<MenuAction> {
 private data class MenuAction(
     val title: String,
     val detail: String,
-    val glyph: String,
+    val icon: ImageVector,
     val accent: Color?,
     val action: () -> Unit,
 )
@@ -1802,12 +1821,11 @@ private fun ActionGrid(actions: List<MenuAction>) {
                 ),
             ) {
                 Row(Modifier.padding(horizontal = 13.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        item.glyph,
-                        color = item.accent ?: MaterialTheme.colorScheme.primary,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(30.dp),
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = null,
+                        tint = item.accent ?: MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(19.dp).width(30.dp),
                     )
                     Column(Modifier.weight(1f)) {
                         Text(item.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -1992,8 +2010,8 @@ private fun MenuSwitchRow(
 }
 
 /** Label + current value, cycled in place: tap/confirm and Right advance, Left steps back.
- *  The compact menu has no picker of its own and a segmented control doesn't fit its width,
- *  so multi-option settings cycle rather than expand. */
+The compact menu has no picker of its own and a segmented control doesn't fit its width,
+so multi-option settings cycle rather than expand. */
 @Composable
 private fun MenuCycleRow(
     title: String,
@@ -2038,7 +2056,7 @@ private fun MenuCycleRow(
 }
 
 @Composable
-private fun CompactAction(title: String, glyph: String, modifier: Modifier, onClick: () -> Unit) {
+private fun CompactAction(title: String, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = modifier.controllerFocusable("pause.compact.$title", onConfirm = onClick),
@@ -2051,13 +2069,18 @@ private fun CompactAction(title: String, glyph: String, modifier: Modifier, onCl
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(glyph, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(19.dp),
+            )
             Text(title, style = MaterialTheme.typography.labelLarge, maxLines = 2)
         }
     }
 }
 
-private fun Modifier.bleedHorizontal(edge: androidx.compose.ui.unit.Dp): Modifier = layout { measurable, constraints ->
+private fun Modifier.bleedHorizontal(edge: Dp): Modifier = layout { measurable, constraints ->
     val edgePx = edge.roundToPx()
     val expandedMin = (constraints.minWidth + edgePx * 2).coerceAtMost(constraints.maxWidth + edgePx * 2)
     val expandedMax = constraints.maxWidth + edgePx * 2
