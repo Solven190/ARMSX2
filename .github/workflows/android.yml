@@ -17,7 +17,7 @@
 #   RA_UA_VERSION      the ARMSX2 client's RetroAchievements version, which pcsx2/Host.cpp reads
 #                      from the gitignored ra_ua_secret.h. Without it RetroAchievements allows
 #                      softcore only, so the Android build fails when it is unset.
-name: Release
+name: Android CI 
 
 on:
   workflow_dispatch:
