@@ -1,5 +1,4 @@
 package com.armsx2.ui.settingshub
-
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,10 +23,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +65,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,7 +77,6 @@ import com.armsx2.navigation.SettingsCategory
 import com.armsx2.ui.common.ArmsBackdrop
 import com.armsx2.ui.common.ArmsTopBar
 import com.armsx2.ui.common.GlassPanel
-import com.armsx2.ui.common.RoundAction
 import com.armsx2.ui.common.SectionTitle
 import com.armsx2.ui.settings.controllerFocusable
 import com.armsx2.ui.settings.AppTab
@@ -72,27 +93,26 @@ import com.armsx2.ui.settings.SkinsTab
 import com.armsx2.ui.settings.LocalSettingsScrollState
 import com.armsx2.ui.settings.LocalSettingsSearchOpenSections
 
-private data class SettingsSection(val category: SettingsCategory, val titleKey: String, val glyph: String)
+private data class SettingsSection(val category: SettingsCategory, val titleKey: String, val icon: ImageVector)
 private data class PendingSettingsJump(val category: SettingsCategory, val label: String, val sections: List<String>)
 
 /**
- * Lets L1/R1 flick between settings tabs, the way the old Refresh UI did.
- *
- * The callback is registered by [SettingsScreen] while it is composed and cleared on dispose,
- * so in-game shoulder presses still reach the pad untouched. It lives here rather than in
- * Compose focus handling because a shoulder button never reaches a Composable — the overlay
- * nav in MainActivityRuntime.dispatchKeyEvent consumes gamepad keys first, which is the same
- * reason hotkey and pad-bind capture are handled there.
- */
+Lets L1/R1 flick between settings tabs, the way the old Refresh UI did.
+The callback is registered by [SettingsScreen] while it is composed and cleared on dispose,
+so in-game shoulder presses still reach the pad untouched. It lives here rather than in
+Compose focus handling because a shoulder button never reaches a Composable — the overlay
+nav in MainActivityRuntime.dispatchKeyEvent consumes gamepad keys first, which is the same
+reason hotkey and pad-bind capture are handled there.
+*/
 object SettingsCategoryNav {
-    /** -1 = previous tab, +1 = next. Null whenever the settings screen isn't showing. */
+    /* -1 = previous tab, +1 = next. Null whenever the settings screen isn't showing. */
     @Volatile
     var cycle: ((Int) -> Unit)? = null
 }
 
 /** Retains the settings page's scroll offset across close/reopen. The selected category is
- *  remembered by SettingsViewModel (#729), so restoring this one offset returns you to where you were (esp.
- *  useful in long lists like Fixes) instead of snapping to the top every time. */
+remembered by SettingsViewModel (#729), so restoring this one offset returns you to where you were (esp.
+useful in long lists like Fixes) instead of snapping to the top every time. */
 private object SettingsScrollMemory {
     var lastOffset = 0
 }
@@ -177,7 +197,6 @@ fun SettingsScreen(
         }
         pendingJump = null
     }
-
     // L1/R1 tab cycling — registered only while this screen is composed. The visible-tab
     // filter has to match SettingsCategoryBar's, or the shoulders would land on a tab the
     // chip row doesn't show. About is always skipped: it navigates to another screen, which
@@ -187,8 +206,8 @@ fun SettingsScreen(
         SettingsCategoryNav.cycle = { direction ->
             val tabs = settingsSections().map { it.category }.filterNot {
                 it == SettingsCategory.About ||
-                    (gameSpecific && it == SettingsCategory.General) ||
-                    (!gameSpecific && it == SettingsCategory.Info)
+                        (gameSpecific && it == SettingsCategory.General) ||
+                        (!gameSpecific && it == SettingsCategory.Info)
             }
             val current = tabs.indexOf(displayedCategory)
             if (current >= 0 && tabs.isNotEmpty()) {
@@ -197,7 +216,6 @@ fun SettingsScreen(
         }
         onDispose { SettingsCategoryNav.cycle = null }
     }
-
     ArmsBackdrop {
         CompositionLocalProvider(LocalSettingsScrollState provides screenScroll) {
             Column(
@@ -212,7 +230,11 @@ fun SettingsScreen(
                     leading = {
                         // Registered in the settings nav so a controller reaches it (up from the chips).
                         Box(Modifier.controllerFocusable("settings.action.back", CircleShape, onConfirm = onBack)) {
-                            RoundAction("←", str("action.back"), onBack)
+                            RoundIconButton(
+                                icon = Icons.Default.ArrowBack,
+                                description = str("action.back"),
+                                onClick = onBack,
+                            )
                         }
                     },
                     actions = {
@@ -221,14 +243,20 @@ fun SettingsScreen(
                         // Play: only in per-game scope — launches the game these settings belong to.
                         scopeGame?.let { g ->
                             Box(Modifier.controllerFocusable("settings.action.play", CircleShape, onConfirm = { playScoped(g) })) {
-                                RoundAction(
-                                    "▶", str("action.play"), { playScoped(g) },
-                                    glyphColor = androidx.compose.ui.graphics.Color(0xFF3DDC84),
+                                RoundIconButton(
+                                    icon = Icons.Default.PlayArrow,
+                                    description = str("action.play"),
+                                    onClick = { playScoped(g) },
+                                    iconTint = Color(0xFF3DDC84),
                                 )
                             }
                         }
                         Box(Modifier.controllerFocusable("settings.action.search", CircleShape, onConfirm = openSearch)) {
-                            RoundAction("⌕", str("action.search"), openSearch)
+                            RoundIconButton(
+                                icon = Icons.Default.Search,
+                                description = str("action.search"),
+                                onClick = openSearch,
+                            )
                         }
                         // Only offer Reset where there is something to reset. Controls owns no
                         // Settings fields (its state lives in ControllerMappings) but IS
@@ -238,7 +266,11 @@ fun SettingsScreen(
                         if (categoryHasResettableSettings(displayedCategory) ||
                             displayedCategory == SettingsCategory.Controls) {
                             Box(Modifier.controllerFocusable("settings.action.reset", CircleShape, onConfirm = { showReset = true })) {
-                                RoundAction("↺", str("action.reset"), { showReset = true })
+                                RoundIconButton(
+                                    icon = Icons.Default.Refresh,
+                                    description = str("action.reset"),
+                                    onClick = { showReset = true },
+                                )
                             }
                         }
                     },
@@ -291,7 +323,6 @@ fun SettingsScreen(
         // BoxScope so its keyboard can dock to the bottom edge over everything.
         SettingsSearchOverlay(this, scopeGame != null)
     }
-
     if (showReset) {
         // ConfirmOverlay, not AlertDialog: a Compose dialog is its own window and swallows
         // controller keys, so the old prompt could only be answered by touch.
@@ -300,7 +331,7 @@ fun SettingsScreen(
             // Name the TAB being reset. The old dialog said only "Global"/"Game", so users
             // reasonably assumed Reset applied to the page they were on — and it didn't.
             message = categoryTitle(displayedCategory) + " · " +
-                (if (scopeGame == null) str("scope.global") else str("scope.game")),
+                    (if (scopeGame == null) str("scope.global") else str("scope.game")),
             confirmLabel = str("action.reset"),
             destructive = true,
             idPrefix = "settings-reset",
@@ -320,9 +351,9 @@ fun SettingsScreen(
 }
 
 /** Floating "back to top" affordance for long settings pages — a game's giant cheat list is the
- *  worst case. Reads the scroll position through a derivedStateOf so only THIS button recomposes
- *  as you scroll (never the already-heavy page below it), and only appears once you're a good way
- *  down. Touch-only by design: controller users reach the top via the chip-row snap + D-pad. */
+worst case. Reads the scroll position through a derivedStateOf so only THIS button recomposes
+as you scroll (never the already-heavy page below it), and only appears once you're a good way
+down. Touch-only by design: controller users reach the top via the chip-row snap + D-pad. */
 @Composable
 private fun BoxScope.SettingsScrollTopButton(scroll: ScrollState) {
     val scope = rememberCoroutineScope()
@@ -330,11 +361,41 @@ private fun BoxScope.SettingsScrollTopButton(scroll: ScrollState) {
     val show by remember { derivedStateOf { scroll.value > 1500 } }
     if (show) {
         Box(Modifier.align(Alignment.BottomEnd).padding(end = 18.dp, bottom = 22.dp)) {
-            RoundAction(
-                glyph = "↑",
+            RoundIconButton(
+                icon = Icons.Default.KeyboardArrowUp,
                 description = str("action.scrollTop"),
                 onClick = { scope.launch { scroll.animateScrollTo(0) } },
                 buttonSize = 52.dp,
+            )
+        }
+    }
+}
+
+/**
+Material You replacement for RoundAction — accepts an ImageVector instead of a String glyph
+so every top-bar action renders as a proper tinted vector icon that scales cleanly at any
+density and follows the theme palette.
+*/
+@Composable
+private fun RoundIconButton(
+    icon: ImageVector,
+    description: String,
+    onClick: () -> Unit,
+    iconTint: Color = MaterialTheme.colorScheme.onSurface,
+    buttonSize: Dp = 40.dp,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(buttonSize),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = description,
+                tint = iconTint,
+                modifier = Modifier.size(buttonSize * 0.5f),
             )
         }
     }
@@ -377,8 +438,8 @@ private fun SettingsCategoryBar(
         // General is redundant per-game (redirects to Performance); Info only makes
         // sense for a specific game, so hide it in the global settings.
         (gameSpecific && it.category == SettingsCategory.General) ||
-            (!gameSpecific && it.category == SettingsCategory.Info) ||
-            (gameSpecific && it.category == SettingsCategory.About)
+                (!gameSpecific && it.category == SettingsCategory.Info) ||
+                (gameSpecific && it.category == SettingsCategory.About)
     }
     Box(Modifier.fillMaxWidth()) {
         Row(
@@ -413,10 +474,11 @@ private fun SettingsCategoryBar(
                         label = { Text(str(section.titleKey), maxLines = 1, style = MaterialTheme.typography.labelLarge) },
                         leadingIcon = {
                             Box(Modifier.size(17.dp), contentAlignment = Alignment.Center) {
-                                Text(
-                                    section.glyph,
-                                    fontSize = 13.sp,
-                                    color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                Icon(
+                                    imageVector = section.icon,
+                                    contentDescription = null,
+                                    tint = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(13.dp),
                                 )
                             }
                         },
@@ -438,20 +500,20 @@ private fun SettingsCategoryBar(
 }
 
 private fun settingsSections() = listOf(
-    SettingsSection(SettingsCategory.General, "tab.app", "⌂"),
-    SettingsSection(SettingsCategory.Info, "tab.info", "ⓘ"),
-    SettingsSection(SettingsCategory.Performance, "tab.performance", "↯"),
-    SettingsSection(SettingsCategory.Graphics, "tab.renderer", "◫"),
-    SettingsSection(SettingsCategory.Audio, "tab.audio", "♫"),
-    SettingsSection(SettingsCategory.Controls, "tab.controls", "⌁"),
-    SettingsSection(SettingsCategory.Hotkeys, "tab.hotkeys", "⌘"),
+    SettingsSection(SettingsCategory.General, "tab.app", Icons.Default.Home),
+    SettingsSection(SettingsCategory.Info, "tab.info", Icons.Default.Info),
+    SettingsSection(SettingsCategory.Performance, "tab.performance", Icons.Default.Bolt),
+    SettingsSection(SettingsCategory.Graphics, "tab.renderer", Icons.Default.Tv),
+    SettingsSection(SettingsCategory.Audio, "tab.audio", Icons.Default.MusicNote),
+    SettingsSection(SettingsCategory.Controls, "tab.controls", Icons.Default.Gamepad),
+    SettingsSection(SettingsCategory.Hotkeys, "tab.hotkeys", Icons.Default.Keyboard),
     // Skins sits with the control-related tabs rather than after On-Screen: it is controller
     // artwork, so people look for it next to Controls and Shortcuts. Requested by Isshin.
-    SettingsSection(SettingsCategory.Skins, "tab.skins", "◈"),
-    SettingsSection(SettingsCategory.Network, "tab.network", "◎"),
-    SettingsSection(SettingsCategory.OnScreen, "tab.overlay", "⊕"),
-    SettingsSection(SettingsCategory.Advanced, "tab.fixes", "⌘"),
-    SettingsSection(SettingsCategory.Patches, "tab.patches", "✦"),
+    SettingsSection(SettingsCategory.Skins, "tab.skins", Icons.Default.Brush),
+    SettingsSection(SettingsCategory.Network, "tab.network", Icons.Default.Wifi),
+    SettingsSection(SettingsCategory.OnScreen, "tab.overlay", Icons.Default.Visibility),
+    SettingsSection(SettingsCategory.Advanced, "tab.fixes", Icons.Default.Tune),
+    SettingsSection(SettingsCategory.Patches, "tab.patches", Icons.Default.AutoFixHigh),
 )
 
 @Composable
